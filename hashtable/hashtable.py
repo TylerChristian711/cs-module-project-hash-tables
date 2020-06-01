@@ -22,7 +22,7 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
-        pass
+        self.capacity = [None] * MIN_CAPACITY
 
 
     def get_num_slots(self):
@@ -74,7 +74,7 @@ class HashTable:
         """
         # Your code here
         hash = 5381
-        for x in key:
+        for _ in key:
             hash = ((hash << 5) + hash) + ord(key)
         return  hash & 0xFFFFFFFF
 
