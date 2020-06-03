@@ -1,7 +1,14 @@
+import sys
+
+sys.path.append('../hashtable/linked_list')
+from linked_list import LinkedList
+
+
 class HashTableEntry:
     """
     Linked List hash table key/value pair
     """
+
     def __init__(self, key, value):
         self.key = key
         self.value = value
@@ -16,45 +23,36 @@ class HashTable:
     """
     A hash table that with `capacity` buckets
     that accepts string keys
-
     Implement this.
     """
 
-    def __init__(self, capacity):
-        # Your code here
-        self.capacity = [None] * MIN_CAPACITY
-
+    def __init__(self, capacity=MIN_CAPACITY):
+        self.storage = [LinkedList()] * MIN_CAPACITY
+        self.count = 0
+        self.capacity = capacity
 
     def get_num_slots(self):
         """
         Return the length of the list you're using to hold the hash
         table data. (Not the number of items stored in the hash table,
         but the number of slots in the main list.)
-
         One of the tests relies on this.
-
         Implement this.
         """
-        # Your code here
-
+        return self.capacity
 
     def get_load_factor(self):
         """
         Return the load factor for this hash table.
-
         Implement this.
         """
-        # Your code here
-
+        return self.count / self.capacity
 
     def fnv1(self, key):
         """
         FNV-1 Hash, 64-bit
-
         Implement this, and/or DJB2.
         """
-
-        # Your code here
         seed = 0
         FNV_prime = 1099511628211
         offset_basis = 14695981039346656037
@@ -65,70 +63,79 @@ class HashTable:
             hash = hash ^ ord(char)
         return hash
 
-
     def djb2(self, key):
         """
         DJB2 hash, 32-bit
-
         Implement this, and/or FNV-1.
         """
-        # Your code here
         hash = 5381
         for _ in key:
             hash = ((hash << 5) + hash) + ord(key)
-        return  hash & 0xFFFFFFFF
-
+        return hash & 0xFFFFFFFF
 
     def hash_index(self, key):
         """
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        return self.fnv1(key) % len(self.storage)
+        # return self.djb2(key) % self.capacity
 
     def put(self, key, value):
         """
         Store the value with the given key.
-
         Hash collisions should be handled with Linked List Chaining.
-
         Implement this.
         """
-        # Your code here
+        slot = self.hash_index(key)
+        current = self.storage[slot].head
+        while current:
+            if current.key == key:
+                current.value = value
+            current = current.next
 
+        entry = HashTableEntry(key, value)
+        self.storage[slot].insert_at_head(entry)
+        self.count += 1
 
     def delete(self, key):
         """
         Remove the value stored with the given key.
-
         Print a warning if the key is not found.
-
         Implement this.
         """
-        # Your code here
-
+        self.put(key, None)
+        self.count -= 1
 
     def get(self, key):
         """
         Retrieve the value stored with the given key.
-
         Returns None if the key is not found.
-
         Implement this.
         """
-        # Your code here
-
+        slot = self.hash_index(key)
+        current = self.storage[slot].head
+        while current:
+            if current.key == key:
+                return current.value
+            current = current.next
+        return None
 
     def resize(self, new_capacity):
         """
         Changes the capacity of the hash table and
         rehashes all key/value pairs.
-
         Implement this.
         """
-        # Your code here
-
+        if self.get_load_factor() > 0.7:
+            old_storage = self.storage
+            self.storage = [LinkedList()] * new_capacity
+            for item in old_storage:
+                current = item.head
+                while current:
+                    self.put(current.key, current.value)
+                    current = current.next
+            self.capacity = new_capacity
 
 
 if __name__ == "__main__":
